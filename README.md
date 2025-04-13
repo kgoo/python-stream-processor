@@ -54,7 +54,7 @@ pip install -r requirements.txt
 
 3. Start the Faust worker:
 ```bash
-faust -A stream_app worker -l info
+faust -A app worker -l info
 ```
 
 Faust will:
