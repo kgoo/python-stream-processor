@@ -1,135 +1,104 @@
-\# Python Stream Processor with Faust, Kafka, Postgres, and Grafana
+# Python Stream Processor
 
-This project demonstrates a lightweight Kafka stream processor using [Faust](https://faust-streaming.readthedocs.io/) to consume event messages, aggregate them in time windows, and store the results in PostgreSQL. Grafana is used to visualize the data.
-
----
-
-\## 🔧 Features
-
-- Reads key/value events from a Kafka topic  
-- Aggregates counts of events by `value` every 10 seconds  
-- Stores the results to a PostgreSQL table  
-- Visualizes aggregated results in Grafana  
+This is a Faust-based Kafka stream processor that consumes JSON events, performs time-series aggregations on the `value` field, and stores the results in a PostgreSQL database. Grafana is used to visualize the data.
 
 ---
 
-\## 🐳 Getting Started with Docker Compose
+## 🔧 Setup
 
-\### 1. Clone the repository
-
-\`\`\`bash
-git clone https://github.com/your-username/python-stream-processor.git
+### 1. Clone the repo
+```bash
+git clone https://github.com/your-user/python-stream-processor.git
 cd python-stream-processor
-\`\`\`
+```
 
-\### 2. Create a `.env` file
+### 2. Create a `.env` file
+Create a `.env` file in the root directory:
 
-\`\`\`ini
-\# .env
+```env
 POSTGRES_USER=faustuser
 POSTGRES_PASSWORD=faustpass
 POSTGRES_DB=faustdb
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
+```
 
-GRAFANA_ADMIN_USER=admin
-GRAFANA_ADMIN_PASSWORD=admin
-\`\`\`
+### 3. Start Docker services (Postgres + Grafana)
+```bash
+docker compose up -d
+```
 
-\### 3. Start services (Postgres + Grafana)
+This will:
+- Start a Postgres database and Grafana container.
+- Grafana will be accessible at: http://localhost:3000
+- Default credentials:
+  - **Username:** `admin`
+  - **Password:** `admin`
 
-\`\`\`bash
-docker-compose up -d
-\`\`\`
-
-Postgres: `localhost:5432`  
-Grafana: `http://localhost:3000` (login using the credentials from `.env`)
-
-Grafana will automatically connect to the Postgres DB and use the preconfigured dashboard.
+A default dashboard will be auto-provisioned if configured in `grafana/provisioning`.
 
 ---
 
-\## 🚀 Running the Faust Stream Processor
+## 🚀 Running Faust
 
-\### 1. Activate the virtual environment
-
-\`\`\`bash
+1. Create and activate a virtual environment:
+```bash
 python -m venv .venv
-source .venv/bin/activate  \# On Windows: .venv\Scripts\activate
-\`\`\`
+source .venv/bin/activate   # on Windows: .venv\Scripts\activate
+```
 
-\### 2. Install dependencies
-
-\`\`\`bash
+2. Install dependencies:
+```bash
 pip install -r requirements.txt
-\`\`\`
+```
 
-\### 3. Start the Faust worker
-
-\`\`\`bash
+3. Start the Faust worker:
+```bash
 faust -A stream_app worker -l info
-\`\`\`
+```
 
-You should see log messages like `Received event:` and `store_aggregate:` once Kafka messages are consumed and written to Postgres.
+Faust will:
+- Connect to the `events` Kafka topic
+- Aggregate event counts by `value`
+- Store aggregated counts into the Postgres database every 10 seconds
 
 ---
 
-\## 📤 Producing Sample Events
+## 📈 Viewing Data in Grafana
 
-Use any Kafka client or CLI to publish events to the `events` topic.
+- Go to: [http://localhost:3000](http://localhost:3000)
+- Log in with `admin` / `admin`
+- Select the "Event Aggregates" dashboard
+- View event counts grouped by `value` in real-time
 
-Example JSON:
+---
 
-\`\`\`json
+## 🧪 Producing Events (Example)
+Use any Kafka producer to publish JSON messages to the `events` topic.
+
+Example message:
+```json
 {
-  "key": "some_key",
-  "value": "some_val1",
-  "timestamp": 1744556173857
+  "key": "user123",
+  "value": "click"
 }
-\`\`\`
+```
 
 ---
 
-\## 📈 Viewing in Grafana
+## 🧹 Clean up Docker (including volumes)
 
-- Open [http://localhost:3000](http://localhost:3000)  
-- Login with admin credentials  
-- Explore the preloaded dashboard showing value counts per window  
-
----
-
-\## 🧹 Cleaning Up
-
-To stop and remove containers **and volumes**:
-
-\`\`\`bash
-docker-compose down -v
-\`\`\`
+To stop everything and remove volumes:
+```bash
+docker compose down -v
+```
 
 ---
 
-\## 📁 Project Structure
+## ✅ Notes
 
-\`\`\`
-.
-├── docker-compose.yml
-├── .env
-├── init.sql
-├── stream_app/
-│   ├── \_\_init\_\_.py
-│   ├── stream_app.py      \# Main Faust app
-│   ├── db.py              \# SQLAlchemy connection + store_aggregate()
-│   ├── models.py          \# Event & Aggregate models
-└── grafana/
-    └── provisioning/
-        ├── datasources/
-        └── dashboards/
-\`\`\`
+- Faust uses tumbling windows of 10 seconds and aggregates values by count.
+- All data is written to PostgreSQL and visualized in Grafana.
+- Timestamp windowing is in UTC.
 
----
-
-\## ✅ Notes
-
-- Faust runs on Kafka and uses changelog topics automatically  
-- Aggregations are done in tumbling 10s windows  
-- Postgres stores window start timestamps in UTC  
+```
