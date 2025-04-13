@@ -1,0 +1,4 @@
+faust-streaming
+SQLAlchemy
+psycopg2-binary
+python-dotenv
