@@ -100,5 +100,3 @@ docker compose down -v
 - Faust uses tumbling windows of 10 seconds and aggregates values by count.
 - All data is written to PostgreSQL and visualized in Grafana.
 - Timestamp windowing is in UTC.
-
-```
